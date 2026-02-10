@@ -2,8 +2,9 @@ export default {
     preset: 'ts-jest/presets/default-esm',
     testEnvironment: 'node',
     extensionsToTreatAsEsm: ['.ts'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
     moduleNameMapper: {
-        '(.+)\\.js': '$1',
+        '^((?:\\.{1,2}\\/)+.*)\\.js$': '$1',
     },
     transform: {
         '^.+\\.ts$': [
@@ -19,6 +20,6 @@ export default {
         ],
     },
     testMatch: ['**/tests/**/*.test.ts'],
-    collectCoverageFrom: ['sr/**/*.ts'],
+    collectCoverageFrom: ['src/**/*.ts'],
     coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
 };
