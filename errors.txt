@@ -1,0 +1,8 @@
+src/config/logger.ts(6,16): error TS2349: This expression is not callable.
+  Type 'typeof import("C:/Users/senso/OneDrive/Masa\u00FCst\u00FC/5G Project/5g-health-platform-ai-triage/node_modules/pino/pino")' has no call signatures.
+src/contracts/schema-validator.ts(13,18): error TS2709: Cannot use namespace 'Ajv2020' as a type.
+src/contracts/schema-validator.ts(18,24): error TS2351: This expression is not constructable.
+  Type 'typeof import("C:/Users/senso/OneDrive/Masa\u00FCst\u00FC/5G Project/5g-health-platform-ai-triage/node_modules/ajv/dist/2020")' has no construct signatures.
+src/contracts/schema-validator.ts(23,9): error TS2349: This expression is not callable.
+  Type 'typeof import("C:/Users/senso/OneDrive/Masa\u00FCst\u00FC/5G Project/5g-health-platform-ai-triage/node_modules/ajv-formats/dist/index")' has no call signatures.
+src/nats/consumer.ts(58,36): error TS2339: Property 'add' does not exist on type 'Consumers'.

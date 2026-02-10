@@ -1,9 +1,9 @@
-import pino from 'pino';
+import pinoLib from 'pino';
 import { loadConfig } from './env.js';
 
 const config = loadConfig();
 
-export const logger = pino({
+const logger = pinoLib.default({
     level: config.log.level,
     transport:
         process.env.NODE_ENV !== 'production'
@@ -17,3 +17,5 @@ export const logger = pino({
             }
             : undefined,
 });
+
+export { logger };

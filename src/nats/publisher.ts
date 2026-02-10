@@ -25,7 +25,6 @@ export class AlertPublisher {
     constructor(
         private natsClient: NatsClient,
         private validator: SchemaValidator,
-        private streamName: string,
     ) { }
 
     async publishAlert(
@@ -68,7 +67,6 @@ export class AlertPublisher {
             await js.publish(
                 'patient.alert.raised',
                 JSON.stringify(alertEvent),
-                { stream: this.streamName },
             );
 
             logger.info(

@@ -55,7 +55,8 @@ export class VitalsConsumer {
             if (err.message?.includes('consumer not found')) {
                 logger.info('Consumer not found, creating new consumer');
 
-                const consumer = await js.consumers.add(this.config.streamName, {
+                const jsm = await nc.jetstreamManager();
+                await jsm.consumers.add(this.config.streamName, {
                     durable_name: this.config.durableName,
                     filter_subject: this.config.subject,
                     ack_policy: AckPolicy.Explicit,
@@ -63,6 +64,8 @@ export class VitalsConsumer {
                     max_deliver: 5, // Retry up to 5 times
                     ack_wait: 30_000_000_000, // 30 seconds in nanoseconds
                 });
+
+                const consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
 
                 logger.info({ durable: this.config.durableName }, 'Consumer created');
 

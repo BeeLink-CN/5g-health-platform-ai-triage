@@ -41,7 +41,6 @@ async function main() {
     const alertPublisher = new AlertPublisher(
         natsClient,
         validator,
-        config.nats.stream,
     );
 
     // Initialize vitals consumer
