@@ -1,4 +1,4 @@
-import { SchemaValidator } from '../../src/contracts/schema-validator.js';
+import { SchemaValidator } from '../../src/contracts/schema-validator';
 import { mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 

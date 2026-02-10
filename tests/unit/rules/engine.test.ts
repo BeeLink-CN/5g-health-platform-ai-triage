@@ -1,5 +1,5 @@
-import { RulesEngine } from '../../src/rules/engine.js';
-import type { RulesConfig, VitalsData } from '../../src/rules/types.js';
+import { RulesEngine } from '../../src/rules/engine';
+import type { RulesConfig, VitalsData } from '../../src/rules/types';
 
 describe('RulesEngine', () => {
     const testRules: RulesConfig = {

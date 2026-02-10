@@ -1,9 +1,9 @@
-import { VitalsConsumer } from '../../src/nats/consumer.js';
-import { RulesEngine } from '../../src/rules/engine.js';
-import { SchemaValidator } from '../../src/contracts/schema-validator.js';
-import { NatsClient } from '../../src/nats/connection.js';
-import { AlertPublisher } from '../../src/nats/publisher.js';
-import { Metrics } from '../../src/metrics/counter.js';
+import { VitalsConsumer } from '../../src/nats/consumer';
+import { RulesEngine } from '../../src/rules/engine';
+import { SchemaValidator } from '../../src/contracts/schema-validator';
+import { NatsClient } from '../../src/nats/connection';
+import { AlertPublisher } from '../../src/nats/publisher';
+import { Metrics } from '../../src/metrics/counter';
 
 // Mock implementations
 class MockMsg {

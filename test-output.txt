@@ -2,50 +2,35 @@
 > 5g-health-platform-ai-triage@1.0.0 test:unit
 > node --experimental-vm-modules node_modules/jest/bin/jest.js --testMatch='**/tests/unit/**/*.test.ts'
 
-ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
-transform: {
-    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
-},
-See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
-ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
-transform: {
-    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
-},
-See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
-ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
-transform: {
-    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
-},
-See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
-FAIL tests/unit/rules/engine.test.ts
+FAIL tests/unit/nats/consumer.test.ts
   ΓùÅ Test suite failed to run
 
-    Cannot find module '../../src/rules/engine.js' from 'tests/unit/rules/engine.test.ts'
+    Cannot find module '../../src/nats/consumer' from 'tests/unit/nats/consumer.test.ts'
 
       at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
 
-(node:33156) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(node:3744) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 FAIL tests/unit/contracts/schema-validator.test.ts
   ΓùÅ Test suite failed to run
 
-    Cannot find module '../../src/contracts/schema-validator.js' from 'tests/unit/contracts/schema-validator.test.ts'
+    Cannot find module '../../src/contracts/schema-validator' from 'tests/unit/contracts/schema-validator.test.ts'
 
       at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
 
-FAIL tests/unit/nats/consumer.test.ts
+FAIL tests/unit/rules/engine.test.ts
   ΓùÅ Test suite failed to run
 
-    Cannot find module '../../src/nats/consumer.js' from 'tests/unit/nats/consumer.test.ts'
+    Cannot find module '../../src/rules/engine' from 'tests/unit/rules/engine.test.ts'
 
       at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
 
-(node:17348) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(node:34576) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:6136) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(node:22416) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Test Suites: 3 failed, 3 total
 Tests:       0 total
 Snapshots:   0 total
-Time:        1.062 s
+Time:        1.035 s
 Ran all test suites.
