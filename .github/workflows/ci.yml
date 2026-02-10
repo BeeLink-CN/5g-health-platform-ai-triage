@@ -11,40 +11,38 @@ jobs:
     name: Test and Build
     runs-on: ubuntu-latest
 
-    services:
-      nats:
-        image: nats:2.10-alpine
-        ports:
-          - 4222:4222
-          - 8222:8222
-        options: >-
-          --health-cmd "wget --spider -q http://localhost:8222/healthz"
-          --health-interval 15s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
-      - name: Wait for NATS to be healthy
+      - name: Start NATS with JetStream
         run: |
+          docker run -d \
+            --name nats-js \
+            -p 4222:4222 \
+            -p 8222:8222 \
+            nats:2.10-alpine \
+            -js \
+            -m 8222
+          
+          # Wait for NATS to be healthy
+          echo "Waiting for NATS health..."
           for i in {1..30}; do
-            if wget -q --spider http://localhost:8222/healthz; then
+            if curl -sf http://localhost:8222/healthz > /dev/null 2>&1; then
               echo "NATS is healthy!"
               break
             fi
-            echo "Waiting for NATS..."
+            echo "Waiting for NATS... ($i/30)"
             sleep 2
           done
 
       - name: Wait for JetStream to be ready
         run: |
           echo "Waiting for JetStream to initialize..."
-          for i in {1..100}; do
+          for i in {1..50}; do
             if curl -sf http://localhost:8222/jsz > /dev/null 2>&1; then
               echo "JetStream is ready!"
               exit 0
             fi
-            echo "Waiting for JetStream... (attempt $i/100)"
-            sleep 5
+            echo "Waiting for JetStream... (attempt $i/50)"
+            sleep 2
           done
           echo "JetStream never became ready" >&2
           exit 1
