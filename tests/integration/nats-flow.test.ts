@@ -1,4 +1,3 @@
-```typescript
 import { connect, NatsConnection, JetStreamClient, JetStreamManager } from 'nats';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,6 +25,23 @@ describe('Integration Test with NATS', () => {
 
         js = nc.jetstream();
         jsm = await nc.jetstreamManager();
+
+        // Wait for JetStream to be fully ready with retry logic
+        console.log('Waiting for JetStream to be ready...');
+        let jetStreamRetries = 30;
+        while (jetStreamRetries-- > 0) {
+            try {
+                await jsm.getAccountInfo();
+                console.log('JetStream is ready!');
+                break;
+            } catch (err) {
+                if (jetStreamRetries === 0) {
+                    throw new Error(`JetStream never became ready: ${ err } `);
+                }
+                console.log(`JetStream not ready yet, retrying... (${ 30 - jetStreamRetries }/30)`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
 
         // Create stream with subjects
         try {
