@@ -19,9 +19,9 @@ jobs:
           - 8222:8222
         options: >-
           --health-cmd "wget --spider -q http://localhost:8222/healthz"
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 5
+          --health-interval 15s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Wait for NATS to be healthy
@@ -38,13 +38,13 @@ jobs:
       - name: Wait for JetStream to be ready
         run: |
           echo "Waiting for JetStream to initialize..."
-          for i in {1..50}; do
-            if curl -sf http://localhost:8222/jsz > /dev/null; then
+          for i in {1..100}; do
+            if curl -sf http://localhost:8222/jsz > /dev/null 2>&1; then
               echo "JetStream is ready!"
               exit 0
             fi
-            echo "Waiting for JetStream... (attempt $i/50)"
-            sleep 3
+            echo "Waiting for JetStream... (attempt $i/100)"
+            sleep 5
           done
           echo "JetStream never became ready" >&2
           exit 1
