@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { connect, NatsConnection, JetStreamClient, JetStreamManager } from 'nats';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -72,14 +73,18 @@ describe('Integration Test with NATS', () => {
     });
 
     it('should publish vitals.recorded event and receive patient.alert.raised', async () => {
-        // Create consumer with retry logic (503 can also occur here)
-        const consumer = await retry(async () => {
-            return await js.consumers.add(STREAM_NAME, {
-                durable_name: 'integration-test-alerts',
+        // Create durable consumer via JetStreamManager with retry logic
+        const CONSUMER_NAME = 'integration-test-alerts';
+        await retry(async () => {
+            await jsm.consumers.add(STREAM_NAME, {
+                durable_name: CONSUMER_NAME,
                 filter_subject: 'patient.alert.raised',
                 ack_policy: 'Explicit' as any,
             });
         }, 10, 2000);
+
+        // Get consumer handle from JetStream client
+        const consumer = await js.consumers.get(STREAM_NAME, CONSUMER_NAME);
 
         const alertsReceived: any[] = [];
         const messages = await consumer.consume();
