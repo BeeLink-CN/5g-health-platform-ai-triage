@@ -1,0 +1,11 @@
+{
+    "heart_rate": {
+        "high_threshold": 120,
+        "low_threshold": 50,
+        "persist_samples": 2
+    },
+    "spo2": {
+        "low_threshold": 90,
+        "persist_samples": 1
+    }
+}

@@ -1,0 +1,165 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    services:
+      nats:
+        image: nats:2.10-alpine
+        ports:
+          - 4222:4222
+          - 8222:8222
+        options: >-
+          --health-cmd "wget --spider -q http://localhost:8222/healthz"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Setup NATS Stream for Integration Test
+        run: |
+          npm install -g nats-cli || true
+          sleep 5
+          # Create JetStream stream using NATS client in the integration test
+          echo "NATS stream will be created by integration test"
+
+      - name: Start Application in Background
+        run: |
+          # Create test contracts directory
+          mkdir -p contracts/events
+          
+          # Create minimal test schemas
+          cat > contracts/events/vitals-recorded.json << 'EOF'
+          {
+            "$id": "https://5g-health-platform.example.com/schemas/events/vitals-recorded.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "required": ["event_name", "event_id", "timestamp", "payload"],
+            "properties": {
+              "event_name": { "type": "string", "const": "vitals.recorded" },
+              "event_id": { "type": "string", "format": "uuid" },
+              "timestamp": { "type": "string", "format": "date-time" },
+              "payload": {
+                "type": "object",
+                "required": ["patient_id", "heart_rate", "oxygen_saturation", "timestamp"],
+                "properties": {
+                  "patient_id": { "type": "string", "format": "uuid" },
+                  "heart_rate": { "type": "integer", "minimum": 0, "maximum": 300 },
+                  "oxygen_saturation": { "type": "integer", "minimum": 0, "maximum": 100 },
+                  "timestamp": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+          EOF
+          
+          cat > contracts/events/patient-alert-raised.json << 'EOF'
+          {
+            "$id": "https://5g-health-platform.example.com/schemas/events/patient-alert-raised.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "required": ["event_name", "event_id", "timestamp", "payload"],
+            "properties": {
+              "event_name": { "type": "string", "const": "patient.alert.raised" },
+              "event_id": { "type": "string", "format": "uuid" },
+              "timestamp": { "type": "string", "format": "date-time" },
+              "payload": {
+                "type": "object",
+                "required": ["patient_id", "severity", "reasons", "suggested_action", "vitals_snapshot"],
+                "properties": {
+                  "patient_id": { "type": "string", "format": "uuid" },
+                  "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+                  "reasons": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["code", "message"],
+                      "properties": {
+                        "code": { "type": "string" },
+                        "message": { "type": "string" }
+                      }
+                    }
+                  },
+                  "suggested_action": { "type": "string" },
+                  "vitals_snapshot": {
+                    "type": "object",
+                    "required": ["heart_rate", "oxygen_saturation", "timestamp"],
+                    "properties": {
+                      "heart_rate": { "type": "number" },
+                      "oxygen_saturation": { "type": "number" },
+                      "timestamp": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          EOF
+          
+          # Start the application
+          NATS_URL=nats://localhost:4222 \
+          CONTRACTS_PATH=./contracts \
+          RULES_PATH=./rules/default.json \
+          node dist/index.js &
+          
+          # Wait for application to start
+          sleep 5
+
+      - name: Run Integration Test
+        run: npm run test:integration
+        env:
+          NATS_URL: nats://localhost:4222
+
+      - name: Check application health
+        run: |
+          curl -f http://localhost:8092/health || exit 1
+          curl -f http://localhost:8092/metrics || exit 1
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create dummy contracts for build test
+        run: |
+          mkdir -p contracts/events
+          echo '{"$id":"test"}' > contracts/events/test.json
+
+      - name: Build Docker image
+        run: docker build -t ai-triage:test .
+
+      - name: Test Docker image
+        run: |
+          docker run --rm ai-triage:test node --version

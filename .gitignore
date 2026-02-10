@@ -1,0 +1,38 @@
+# Do not add to version control
+.env
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+
+# Local contracts (if symlinked)
+contracts/
+
+# Mac specific
+._.DS_Store

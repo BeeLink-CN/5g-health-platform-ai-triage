@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  ai-triage:
+    build: .
+    container_name: ai-triage
+    environment:
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - NATS_STREAM=${NATS_STREAM:-events}
+      - NATS_DURABLE=${NATS_DURABLE:-ai-triage}
+      - CONTRACTS_PATH=/app/contracts
+      - RULES_PATH=/app/rules/default.json
+      - STATE_TTL_MS=${STATE_TTL_MS:-600000}
+      - HTTP_PORT=8092
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - "8092:8092"
+    volumes:
+      # Mount contracts from external repository (adjust path as needed)
+      - ../5g-health-platform-contracts/schemas:/app/contracts:ro
+      # Mount rules configuration (can be overridden)
+      - ./rules:/app/rules:ro
+    depends_on:
+      - nats
+    restart: unless-stopped
+    networks:
+      - health-platform
+
+  # Optional: Include NATS for local development
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats
+    command: "-js -sd /data"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-data:/data
+    networks:
+      - health-platform
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+networks:
+  health-platform:
+    name: health-platform
+    driver: bridge
+
+volumes:
+  nats-data:
