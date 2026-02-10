@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { connect, NatsConnection, JetStreamClient, JetStreamManager } from 'nats';
+import { connect, NatsConnection, JetStreamClient, JetStreamManager, AckPolicy } from 'nats';
 import { v4 as uuidv4 } from 'uuid';
 
 describe('Integration Test with NATS', () => {
@@ -79,7 +79,7 @@ describe('Integration Test with NATS', () => {
             await jsm.consumers.add(STREAM_NAME, {
                 durable_name: CONSUMER_NAME,
                 filter_subject: 'patient.alert.raised',
-                ack_policy: 'Explicit' as any,
+                ack_policy: AckPolicy.Explicit,
             });
         }, 10, 2000);
 

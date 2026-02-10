@@ -82,14 +82,17 @@ export class VitalsConsumer {
                 logger.info('Consumer not found, creating new consumer');
 
                 const jsm = await nc.jetstreamManager();
-                await jsm.consumers.add(this.config.streamName, {
+                const consumerConfig = {
                     durable_name: this.config.durableName,
                     filter_subject: this.config.subject,
                     ack_policy: AckPolicy.Explicit,
                     deliver_policy: DeliverPolicy.All,
                     max_deliver: 5,
                     ack_wait: 30_000_000_000, // 30 seconds in nanoseconds
-                });
+                };
+
+                logger.info({ config: consumerConfig }, 'Creating consumer with config');
+                await jsm.consumers.add(this.config.streamName, consumerConfig);
 
                 consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
                 logger.info({ durable: this.config.durableName }, 'Consumer created');
