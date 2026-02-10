@@ -1,3 +1,4 @@
+```typescript
 import { connect, NatsConnection, JetStreamClient, JetStreamManager } from 'nats';
 import { v4 as uuidv4 } from 'uuid';
 
