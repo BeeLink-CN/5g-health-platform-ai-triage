@@ -9,54 +9,61 @@ describe('Integration Test with NATS', () => {
     const NATS_URL = process.env.NATS_URL || 'nats://localhost:4222';
     const STREAM_NAME = 'events';
 
-    beforeAll(async () => {
-        // Wait for NATS to be ready
-        let retries = 30;
-        while (retries > 0) {
+    /**
+     * Retry helper: calls `fn` up to `maxRetries` times with `delayMs` between attempts.
+     * Useful for JetStream operations that may return 503 while still initializing.
+     */
+    async function retry<T>(fn: () => Promise<T>, maxRetries = 30, delayMs = 2000): Promise<T> {
+        let lastError: unknown;
+        for (let i = 1; i <= maxRetries; i++) {
             try {
-                nc = await connect({ servers: NATS_URL });
-                break;
+                return await fn();
             } catch (err) {
-                retries--;
-                if (retries === 0) throw err;
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-            }
-        }
-
-        js = nc.jetstream();
-        jsm = await nc.jetstreamManager();
-
-        // Wait for JetStream to be fully ready with retry logic
-        console.log('Waiting for JetStream to be ready...');
-        let jetStreamRetries = 30;
-        while (jetStreamRetries-- > 0) {
-            try {
-                await jsm.getAccountInfo();
-                console.log('JetStream is ready!');
-                break;
-            } catch (err) {
-                if (jetStreamRetries === 0) {
-                    throw new Error(`JetStream never became ready: ${ err } `);
+                lastError = err;
+                console.log(`Retry ${i}/${maxRetries} failed: ${err}`);
+                if (i < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
                 }
-                console.log(`JetStream not ready yet, retrying... (${ 30 - jetStreamRetries }/30)`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
+        throw lastError;
+    }
 
-        // Create stream with subjects
+    beforeAll(async () => {
+        // Wait for NATS connection with retries
+        nc = await retry(async () => {
+            const conn = await connect({ servers: NATS_URL });
+            console.log('Connected to NATS');
+            return conn;
+        }, 30, 1000);
+
+        jsm = await nc.jetstreamManager();
+        js = nc.jetstream();
+
+        // Wait for JetStream to be fully operational by testing account info
+        await retry(async () => {
+            const info = await jsm.getAccountInfo();
+            console.log('JetStream account info retrieved:', JSON.stringify(info));
+        }, 30, 1000);
+
+        // Delete existing stream if present (ignore errors)
         try {
             await jsm.streams.delete(STREAM_NAME);
-        } catch (err) {
-            // Stream might not exist, ignore
+            console.log('Deleted existing stream');
+        } catch {
+            // Stream might not exist, that's fine
         }
 
-        await jsm.streams.add({
-            name: STREAM_NAME,
-            subjects: ['vitals.recorded', 'patient.alert.raised'],
-        });
+        // Create stream with retry logic (this is where 503 often occurs)
+        await retry(async () => {
+            await jsm.streams.add({
+                name: STREAM_NAME,
+                subjects: ['vitals.recorded', 'patient.alert.raised'],
+            });
+            console.log('Stream created successfully');
+        }, 15, 2000);
 
-        console.log('NATS stream created successfully');
-    }, 60000);
+    }, 120000); // 2 minute timeout for setup
 
     afterAll(async () => {
         if (nc) {
@@ -65,14 +72,16 @@ describe('Integration Test with NATS', () => {
     });
 
     it('should publish vitals.recorded event and receive patient.alert.raised', async () => {
-        // Subscribe to patient.alert.raised
-        const alertsReceived: any[] = [];
-        const consumer = await js.consumers.add(STREAM_NAME, {
-            durable_name: 'integration-test-alerts',
-            filter_subject: 'patient.alert.raised',
-            ack_policy: 'Explicit' as any,
-        });
+        // Create consumer with retry logic (503 can also occur here)
+        const consumer = await retry(async () => {
+            return await js.consumers.add(STREAM_NAME, {
+                durable_name: 'integration-test-alerts',
+                filter_subject: 'patient.alert.raised',
+                ack_policy: 'Explicit' as any,
+            });
+        }, 10, 2000);
 
+        const alertsReceived: any[] = [];
         const messages = await consumer.consume();
 
         // Collect alerts
@@ -89,7 +98,7 @@ describe('Integration Test with NATS', () => {
         });
 
         // Wait for AI triage service to be ready
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Publish a vitals.recorded event that should trigger an alert
         const vitalsEvent = {
@@ -98,7 +107,7 @@ describe('Integration Test with NATS', () => {
             timestamp: new Date().toISOString(),
             payload: {
                 patient_id: uuidv4(),
-                heart_rate: 85, // First sample - within normal range
+                heart_rate: 85,
                 oxygen_saturation: 98,
                 timestamp: new Date().toISOString(),
             },
@@ -109,7 +118,7 @@ describe('Integration Test with NATS', () => {
         console.log('Published normal vitals event');
 
         // Wait a bit
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Now publish event that violates SpO2 threshold (should trigger immediate alert)
         const criticalVitals = {
@@ -130,7 +139,7 @@ describe('Integration Test with NATS', () => {
         await Promise.race([
             alertPromise,
             new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Timeout waiting for alert')), 10000),
+                setTimeout(() => reject(new Error('Timeout waiting for alert')), 15000),
             ),
         ]);
 
@@ -147,5 +156,5 @@ describe('Integration Test with NATS', () => {
         expect(alert.payload.vitals_snapshot).toBeDefined();
 
         console.log('Alert received successfully:', alert);
-    }, 30000);
+    }, 60000); // 1 minute timeout for test
 });
