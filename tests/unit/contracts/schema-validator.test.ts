@@ -1,4 +1,5 @@
-import { SchemaValidator } from '../../src/contracts/schema-validator';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { SchemaValidator } from '../../src/contracts/schema-validator.js';
 import { mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 

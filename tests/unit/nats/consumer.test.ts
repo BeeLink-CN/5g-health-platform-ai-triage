@@ -1,9 +1,10 @@
-import { VitalsConsumer } from '../../src/nats/consumer';
-import { RulesEngine } from '../../src/rules/engine';
-import { SchemaValidator } from '../../src/contracts/schema-validator';
-import { NatsClient } from '../../src/nats/connection';
-import { AlertPublisher } from '../../src/nats/publisher';
-import { Metrics } from '../../src/metrics/counter';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { VitalsConsumer } from '../../src/nats/consumer.js';
+import { RulesEngine } from '../../src/rules/engine.js';
+import { SchemaValidator } from '../../src/contracts/schema-validator.js';
+import { NatsClient } from '../../src/nats/connection.js';
+import { AlertPublisher } from '../../src/nats/publisher.js';
+import { Metrics } from '../../src/metrics/counter.js';
 
 // Mock implementations
 class MockMsg {
@@ -40,26 +41,26 @@ describe('VitalsConsumer Message Handling', () => {
         metrics = new Metrics();
 
         mockNatsClient = {
-            getConnection: jest.fn(() => ({
-                jetstream: jest.fn(() => ({
+            getConnection: vi.fn(() => ({
+                jetstream: vi.fn(() => ({
                     consumers: {
-                        get: jest.fn(),
-                        add: jest.fn(),
+                        get: vi.fn(),
+                        add: vi.fn(),
                     },
                 })),
             })),
         };
 
         mockValidator = {
-            validateVitalsRecorded: jest.fn(() => ({ valid: true })),
+            validateVitalsRecorded: vi.fn(() => ({ valid: true })),
         };
 
         mockRulesEngine = {
-            evaluate: jest.fn(() => ({ shouldAlert: false })),
+            evaluate: vi.fn(() => ({ shouldAlert: false })),
         };
 
         mockPublisher = {
-            publishAlert: jest.fn(() => Promise.resolve(true)),
+            publishAlert: vi.fn(() => Promise.resolve(true)),
         };
     });
 
@@ -93,7 +94,7 @@ describe('VitalsConsumer Message Handling', () => {
 
     describe('Schema Validation Failure', () => {
         it('should ACK message and increment dropped_invalid on validation error', async () => {
-            mockValidator.validateVitalsRecorded = jest.fn(() => ({
+            mockValidator.validateVitalsRecorded = vi.fn(() => ({
                 valid: false,
                 errors: 'Missing required field',
             }));
@@ -172,7 +173,7 @@ describe('VitalsConsumer Message Handling', () => {
 
     describe('Alert Published Successfully', () => {
         it('should ACK message and increment alerts_published on successful publish', async () => {
-            mockRulesEngine.evaluate = jest.fn(() => ({
+            mockRulesEngine.evaluate = vi.fn(() => ({
                 shouldAlert: true,
                 severity: 'high',
                 reasons: [{ code: 'HEART_RATE_HIGH', message: 'Too high' }],
@@ -217,14 +218,14 @@ describe('VitalsConsumer Message Handling', () => {
 
     describe('Alert Publish Failure', () => {
         it('should NAK message and increment dropped_publish_fail on publish error', async () => {
-            mockRulesEngine.evaluate = jest.fn(() => ({
+            mockRulesEngine.evaluate = vi.fn(() => ({
                 shouldAlert: true,
                 severity: 'high',
                 reasons: [{ code: 'HEART_RATE_HIGH', message: 'Too high' }],
                 suggestedAction: 'Check patient',
             }));
 
-            mockPublisher.publishAlert = jest.fn(() => Promise.resolve(false));
+            mockPublisher.publishAlert = vi.fn(() => Promise.resolve(false));
 
             const consumer = new VitalsConsumer(
                 mockNatsClient as any,
