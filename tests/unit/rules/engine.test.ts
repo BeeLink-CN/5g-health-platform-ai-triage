@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RulesEngine } from '../../src/rules/engine.js';
-import type { RulesConfig, VitalsData } from '../../src/rules/types.js';
+import { RulesEngine } from '../../../dist/rules/engine.js';
+import type { RulesConfig, VitalsData } from '../../../dist/rules/types.js';
 
 describe('RulesEngine', () => {
     const testRules: RulesConfig = {

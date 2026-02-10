@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { VitalsConsumer } from '../../src/nats/consumer.js';
-import { RulesEngine } from '../../src/rules/engine.js';
-import { SchemaValidator } from '../../src/contracts/schema-validator.js';
-import { NatsClient } from '../../src/nats/connection.js';
-import { AlertPublisher } from '../../src/nats/publisher.js';
-import { Metrics } from '../../src/metrics/counter.js';
+import { VitalsConsumer } from '../../../dist/nats/consumer.js';
+import { RulesEngine } from '../../../dist/rules/engine.js';
+import { SchemaValidator } from '../../../dist/contracts/schema-validator.js';
+import { NatsClient } from '../../../dist/nats/connection.js';
+import { AlertPublisher } from '../../../dist/nats/publisher.js';
+import { Metrics } from '../../../dist/metrics/counter.js';
 
 // Mock implementations
 class MockMsg {
