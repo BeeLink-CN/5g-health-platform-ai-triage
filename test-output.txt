@@ -2,68 +2,50 @@
 > 5g-health-platform-ai-triage@1.0.0 test:unit
 > node --experimental-vm-modules node_modules/jest/bin/jest.js --testMatch='**/tests/unit/**/*.test.ts'
 
-FAIL tests/unit/nats/consumer.test.ts
-  ΓùÅ Test suite failed to run
-
-    Configuration error:
-
-    Could not locate module ../../src/nats/consumer.js mapped as:
-    $1.
-
-    Please check your configuration for these entries:
-    {
-      "moduleNameMapper": {
-        "/^(\.{1,2}\/.*)\.js$/": "$1"
-      },
-      "resolver": undefined
-    }
-
-      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/resolver.js:759:17)
-
-(node:6040) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
-(Use `node --trace-warnings ...` to show where the warning was created)
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
 FAIL tests/unit/rules/engine.test.ts
   ΓùÅ Test suite failed to run
 
-    Configuration error:
+    Cannot find module '../../src/rules/engine.js' from 'tests/unit/rules/engine.test.ts'
 
-    Could not locate module ../../src/rules/engine.js mapped as:
-    $1.
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
 
-    Please check your configuration for these entries:
-    {
-      "moduleNameMapper": {
-        "/^(\.{1,2}\/.*)\.js$/": "$1"
-      },
-      "resolver": undefined
-    }
-
-      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/resolver.js:759:17)
-
-(node:32220) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(node:33156) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 FAIL tests/unit/contracts/schema-validator.test.ts
   ΓùÅ Test suite failed to run
 
-    Configuration error:
+    Cannot find module '../../src/contracts/schema-validator.js' from 'tests/unit/contracts/schema-validator.test.ts'
 
-    Could not locate module ../../src/contracts/schema-validator.js mapped as:
-    $1.
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
 
-    Please check your configuration for these entries:
-    {
-      "moduleNameMapper": {
-        "/^(\.{1,2}\/.*)\.js$/": "$1"
-      },
-      "resolver": undefined
-    }
+FAIL tests/unit/nats/consumer.test.ts
+  ΓùÅ Test suite failed to run
 
-      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/resolver.js:759:17)
+    Cannot find module '../../src/nats/consumer.js' from 'tests/unit/nats/consumer.test.ts'
 
-(node:32956) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
+
+(node:17348) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6136) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Test Suites: 3 failed, 3 total
 Tests:       0 total
 Snapshots:   0 total
-Time:        1.243 s
+Time:        1.062 s
 Ran all test suites.
