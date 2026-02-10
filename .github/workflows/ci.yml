@@ -24,6 +24,31 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Wait for NATS to be healthy
+        run: |
+          for i in {1..30}; do
+            if wget -q --spider http://localhost:8222/healthz; then
+              echo "NATS is healthy!"
+              break
+            fi
+            echo "Waiting for NATS..."
+            sleep 2
+          done
+
+      - name: Wait for JetStream to be ready
+        run: |
+          echo "Waiting for JetStream to initialize..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:8222/jsz > /dev/null; then
+              echo "JetStream is ready!"
+              exit 0
+            fi
+            echo "Waiting for JetStream... (attempt $i/30)"
+            sleep 2
+          done
+          echo "JetStream never became ready" >&2
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
