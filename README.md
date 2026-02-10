@@ -327,4 +327,4 @@ Schemas are managed in the `5g-health-platform-contracts` repository. Update tha
 
 ## License
 
-MIT
+N/A
