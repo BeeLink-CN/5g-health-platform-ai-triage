@@ -36,23 +36,49 @@ export class VitalsConsumer {
             'Starting JetStream consumer',
         );
 
-        try {
-            // Create or get durable consumer
-            const consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
+        const maxRetries = 30;
+        const baseDelayMs = 2000;
+        let lastError: unknown;
 
-            logger.info({ durable: this.config.durableName }, 'Using existing consumer');
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await this.connectAndConsume(nc, js);
+            } catch (err: any) {
+                lastError = err;
+                const code = err?.code ?? '';
+                const message = err?.message ?? '';
+                const isRetryable =
+                    code === '503' ||
+                    message.includes('stream not found') ||
+                    message.includes('unavailable') ||
+                    message.includes('consumer not found');
 
-            // Start consuming messages
-            const messages = await consumer.consume({
-                max_messages: 100, // Process up to 100 messages concurrently
-            });
+                if (isRetryable && attempt < maxRetries) {
+                    logger.warn(
+                        { attempt, maxRetries, error: message, code },
+                        'JetStream not ready, retrying...',
+                    );
+                    await new Promise(resolve => setTimeout(resolve, baseDelayMs));
+                    continue;
+                }
 
-            for await (const msg of messages) {
-                await this.handleMessage(msg);
+                throw err;
             }
+        }
+
+        throw lastError;
+    }
+
+    private async connectAndConsume(nc: any, js: any): Promise<void> {
+        let consumer: any;
+
+        try {
+            // Try to get existing consumer
+            consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
+            logger.info({ durable: this.config.durableName }, 'Using existing consumer');
         } catch (err: any) {
             // Consumer doesn't exist, create it
-            if (err.message?.includes('consumer not found')) {
+            if (err.message?.includes('consumer not found') || err.code === '404') {
                 logger.info('Consumer not found, creating new consumer');
 
                 const jsm = await nc.jetstreamManager();
@@ -61,25 +87,24 @@ export class VitalsConsumer {
                     filter_subject: this.config.subject,
                     ack_policy: AckPolicy.Explicit,
                     deliver_policy: DeliverPolicy.All,
-                    max_deliver: 5, // Retry up to 5 times
+                    max_deliver: 5,
                     ack_wait: 30_000_000_000, // 30 seconds in nanoseconds
                 });
 
-                const consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
-
+                consumer = await js.consumers.get(this.config.streamName, this.config.durableName);
                 logger.info({ durable: this.config.durableName }, 'Consumer created');
-
-                // Start consuming
-                const messages = await consumer.consume({
-                    max_messages: 100,
-                });
-
-                for await (const msg of messages) {
-                    await this.handleMessage(msg);
-                }
             } else {
                 throw err;
             }
+        }
+
+        // Start consuming messages
+        const messages = await consumer.consume({
+            max_messages: 100,
+        });
+
+        for await (const msg of messages) {
+            await this.handleMessage(msg);
         }
     }
 
