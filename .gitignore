@@ -31,8 +31,8 @@ coverage/
 tmp/
 temp/
 
-# Local contracts (if symlinked)
-contracts/
+# Local contracts (if symlinked) - only ignore root-level contracts/
+/contracts/
 
 # Mac specific
 ._.DS_Store
